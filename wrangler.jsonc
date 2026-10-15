@@ -1,0 +1,14 @@
+// Cloudflare(Workers の静的アセット)へのデプロイ設定。`npx wrangler deploy` が読む。
+// 配信するのは、`npm run generate` が書き出す .output/public だけ(サーバー側のコードはない)。
+{
+  // Cloudflare の Worker の名前と同じにする(違うとビルドが失敗する。ダッシュボードの Workers & Pages の一覧で確認できる)
+  "name": "portfolio-umamimi",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": ".output/public",
+    // /works/ へのアクセスを /works へ寄せる(canonical・sitemap が末尾の / なしのため)
+    "html_handling": "drop-trailing-slash",
+    // 存在しないパスには 404.html を返す
+    "not_found_handling": "404-page"
+  }
+}

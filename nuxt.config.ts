@@ -68,6 +68,9 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // 静的なファイルとして書き出す。Cloudflare のビルド環境では、指定しないと Nitro が cloudflare-module を
+    // 自動で選び、存在しないサーバー用の出力(index.mjs)を探してデプロイに失敗する
+    preset: 'static',
     prerender: {
       // ページの生成に失敗したら、そのまま公開せずビルドを止める
       failOnError: true,

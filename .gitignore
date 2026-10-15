@@ -2,6 +2,7 @@ node_modules
 .claude
 .nuxt
 .output
+.wrangler
 dist
 .data
 .env
