@@ -11,12 +11,12 @@
 | フレームワーク | Nuxt(`nuxt generate` による SSG) |
 | スタイル | Tailwind CSS |
 | CMS | microCMS(Hobby プラン / 無料) |
-| 公開 | Cloudflare Pages |
+| 公開 | Cloudflare(Workers のビルド + 静的アセット。2章の「Cloudflare へのデプロイ」) |
 | 本番ドメイン | `umamimi.saphir-vis.com`(DNS は Cloudflare 管理) |
 | 制作中の確認 | Cloudflare Tunnel(固定ホスト名)+ Cloudflare Access で閲覧制限 |
 
 ### 更新フロー
-microCMS で公開 → Webhook → Cloudflare Pages のビルド起動 → 再生成。
+microCMS で公開 → Webhook → Cloudflare のビルド起動 → 再生成。
 
 ### 実装状況・環境メモ
 - 骨組み(Nuxt 4 + Tailwind 4、全ページ、404)は作成済み。`npm run generate` で全ページの出力を確認した(microCMS 連携の前の状態)。
@@ -25,10 +25,13 @@ microCMS で公開 → Webhook → Cloudflare Pages のビルド起動 → 再�
 - Node は `24.20.0`、Nuxt は `4.6.1`(Node `24.15` 以上が必要)。2026-10-13 に更新した。
 - `npm audit` の指摘(14件)は、いずれも Nuxt の開発・ビルド用ツール(`simple-git`、`node-forge`、`nitropack` など)の依存関係。生成される静的サイトには含まれない。
   - 提案される修正は「Nuxt を 3.7.4 に戻す」で、現実的ではない。Nuxt 側の更新を待つ。
-- Cloudflare Pages のビルド設定(予定):
-  - ビルドコマンド: `npm run generate`
-  - 出力ディレクトリ: `.output/public`
-  - 環境変数: `NODE_VERSION`、`MICROCMS_SERVICE_DOMAIN`、`MICROCMS_API_KEY`、`GA_MEASUREMENT_ID`(Google アナリティクスの計測 ID。**Production だけ**に設定する。5章)
+- Cloudflare へのデプロイ(2026-10-16。**Pages ではなく Workers のビルド(静的アセット)で作られた**。GitHub: `nmst0811/portfolio-Umamimi`、ブランチ `main`):
+  - ビルドコマンド: `npm run generate`。デプロイコマンド: `npx wrangler deploy`(そのまま)
+  - 配信するのは `.output/public` だけ。置き場所は、リポジトリ直下の `wrangler.jsonc`(`assets.directory`)に書いてある。
+  - **`nuxt.config.ts` の `nitro.preset: 'static'` を外さないこと。** 指定しないと、Cloudflare のビルド環境で Nitro が `cloudflare-module` を自動で選び、存在しないサーバー用の出力(`index.mjs`)を探して `wrangler deploy` が失敗する(2026-10-16 に実際に起きた。`WORKERS_CI=1` を付けて `npm run generate` すれば手元でも再現できる)。
+  - `wrangler.jsonc` の `name` は、Cloudflare の Worker の名前と**同じにする**(違うとビルドが失敗する。いまは `portfolio-umamimi` と仮定した値)。`html_handling: "drop-trailing-slash"` で `/works/` を `/works` へ寄せ(canonical・sitemap が末尾の `/` なしのため)、`not_found_handling: "404-page"` で存在しないパスに `404.html` を返す。手元の `wrangler dev` で、`/works/` → 307 で `/works`、`/works` → 200、存在しないパス → 404 を確認した。
+  - 環境変数は、**ビルド用**(Settings > Build の「Variables and secrets」)に設定する(Worker の実行時の変数ではない。値はビルド時にしか使わない): `NODE_VERSION`、`MICROCMS_SERVICE_DOMAIN`、`MICROCMS_API_KEY`、`GA_MEASUREMENT_ID`(Google アナリティクスの計測 ID。**本番だけ**に設定する。5章)
+  - microCMS の Webhook(更新でビルドを走らせる)は、Workers のビルドにも「Deploy hooks」があるか、管理画面で確認する(未確認)。なければ、更新のたびにビルドを再実行する。
 
 ### 制作中の公開(Cloudflare Tunnel)
 - クイックトンネル(`trycloudflare.com`)で、全ページの表示と HMR の WebSocket が通ることを確認済み。
@@ -163,11 +166,11 @@ API は 4 個で、Hobby プランの上限(5個)に収まる。**項目ID は�
 - **rss.xml**: `server/routes/rss.xml.get.ts`。RSS 2.0。作品とブログの新着を、公開日の新しい順に30件。外部記事は外部の URL へリンクする(一覧と同じ)。**イベントは入れない**(RSS の項目には公開日が要るが、イベントが持つのは開催日だけで、未来になりうるため)。各ページの `<head>` に、RSS の場所を示す `<link rel="alternate">` がある。
 - **robots.txt**: `server/routes/robots.txt.get.ts`。すべて許可し、sitemap の場所を示す。
 - これらは `nuxt.config.ts` の `nitro.prerender.routes` で、ビルド時にファイルとして書き出す。一覧は `/api/` から取るので、microCMS が0件でもビルドできる。
-- URL は末尾の `/` なし(Nuxt のルートのまま)。公開後に、Cloudflare Pages での表示(`/works` と `/works/` の扱い)を確認する。
+- URL は末尾の `/` なし(Nuxt のルートのまま)。Cloudflare 側は `wrangler.jsonc` の `html_handling: "drop-trailing-slash"` で、`/works/` を `/works` へ寄せる(手元の `wrangler dev` では 307)。公開後に、実際の挙動を確認する。
 
 ### Google アナリティクス(GA4。2026-10-16 に組み込み。計測 ID を入れるまでは動かない)
 - **計測 ID の置き場所**: 環境変数 `GA_MEASUREMENT_ID`(`G-XXXXXXXXXX`)。計測 ID は秘密の値ではない(公開ページの HTML に出る)が、リポジトリには書かない。
-  - **Cloudflare Pages の環境変数に、「Production」だけで設定する**。プレビュー用のビルドや、ローカルの `npm run dev` のアクセスが、統計に混ざらない。ローカルの `.env` には、通常は入れない(`.env.example` に説明あり)。
+  - **Cloudflare のビルド用の変数に、本番のビルドだけで設定する**(Workers のビルドでプレビュー用の変数を分けられないときは、そのまま設定する。その場合、プレビューの URL へのアクセスも数えられる)。ローカルの `npm run dev` のアクセスが、統計に混ざらないようにするため。ローカルの `.env` には、通常は入れない(`.env.example` に説明あり)。
   - SSG なので、ID はビルド時に HTML へ埋め込まれる。**ID を設定・変更したら、再ビルド(再デプロイ)が要る**。
   - 未設定なら、計測も、フッターの表記も出ない。形式が `G-` で始まるものでないとき(`GTM-…`、`UA-…` など)は、ビルドを止める(`nuxt.config.ts`)。
 - **読み込み**: Google 標準のスニペット(`gtag.js`)を、`nuxt.config.ts` の `app.head.script` から、全ページの `<head>` に静的に出す。JS のプラグインは使わない。
@@ -254,7 +257,7 @@ API は 4 個で、Hobby プランの上限(5個)に収まる。**項目ID は�
 - [x] OGP 画像・sitemap・RSS(5章)
 - [x] プライバシーポリシーのページ(雛形)。Google アナリティクスの組み込み後の文面の見直しは、計測 ID を入れて公開するときに行う
 - [x] Google アナリティクスの組み込み(2026-10-16。5章)。同意バナーは出さず、フッターに「使っています」と表記する
-- [ ] Cloudflare Pages の Production に環境変数 `GA_MEASUREMENT_ID` を設定する(ユーザー)。公開後、GA の「リアルタイム」でページ移動も数えられているか確かめる
+- [ ] Cloudflare のビルド用の変数に `GA_MEASUREMENT_ID` を設定する(ユーザー)。公開後、GA の「リアルタイム」でページ移動も数えられているか確かめる
 - [ ] 複数日のイベントが、2日目から「終了」と表示される件(判定が初日だけのため。必要になったら、判定用の項目を足す)
 - [x] microCMS のサービス作成、4つの API の作成、API キーの発行、`.env` への設定、接続の確認(2026-10-15)
 - [ ] 作品・ブログ・イベントに実際のコンテンツを入れ、表示を確かめる(まずは各1件でよい)。2026-10-16 時点で、作品に動画が1件入り、ビルドと表示を確認済み。残り: プロダクトの作品(関連リンク付き)、ブログ(自サイト記事と外部記事)、イベント
