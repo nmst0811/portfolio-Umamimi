@@ -1,0 +1,95 @@
+<!doctype html>
+<!--
+  OGP 画像(public/og.png)の元。1200×630。
+  サイトのデザイン(app/assets/css/main.css、CharacterWindow.vue)と同じ色・形で描いている。
+  作り直すとき: design/ogp/render.ps1 を実行する(Edge のヘッドレスで画像にする)。
+  フォントとキャラ画像は、リポジトリ内のファイルを相対パスで読む。
+-->
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>Umamimi OGP</title>
+<link rel="stylesheet" href="../../node_modules/@fontsource/dotgothic16/latin-400.css" />
+<link rel="stylesheet" href="../../node_modules/@fontsource/zen-kaku-gothic-new/700.css" />
+<style>
+  :root {
+    --bg: #070c11;
+    --line: #1d3340;
+    --fg: #e9f2f6;
+    --muted: #94aab6;
+    --accent: #39c5bb;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--bg); }
+  body { position: relative; color: var(--fg); font-family: 'Zen Kaku Gothic New', 'Yu Gothic UI', 'Meiryo', sans-serif; }
+
+  /* 図面の方眼(サイト全体の背景と同じ。80px、線は60%) */
+  .grid { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* 舞台の光の筋。ぼかさない半透明の面を1本だけ */
+  .beam {
+    position: absolute; left: 640px; top: -120px; width: 250px; height: 780px;
+    background: color-mix(in oklab, var(--accent) 8%, transparent);
+    clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  }
+
+  /* キャラの窓(CharacterWindow.vue と同じ割合) */
+  .window { position: absolute; left: 590px; top: 36px; width: 560px; height: 560px; }
+  .window svg { position: absolute; left: 6%; top: 6%; width: 88%; height: 88%; overflow: visible; }
+  .window img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 94% 50%, 85.6% 75.86%, 63.6% 91.84%, 36.4% 91.84%, 14.4% 75.86%, 6% 50%, 0% 50%);
+  }
+
+  .wordmark {
+    position: absolute; left: 70px; top: 158px;
+    font-family: 'DotGothic16', 'Zen Kaku Gothic New', sans-serif;
+    font-size: 112px; line-height: 1; display: flex;
+  }
+  /* 1文字ずつ同じ幅のマスに置く(Wordmark.vue と同じ) */
+  .wordmark span { display: inline-block; width: 0.66em; text-align: center; }
+
+  .tagline { position: absolute; left: 76px; top: 330px; font-size: 32px; font-weight: 700; line-height: 1.7; }
+  .tagline span { display: block; }
+
+  /* 見出しの下の結線(PageHeader.vue)。線の先に丸 */
+  .route { position: absolute; left: 76px; top: 300px; width: 470px; height: 10px; overflow: visible; }
+
+  .url { position: absolute; left: 76px; bottom: 52px; font-size: 24px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+  <svg class="grid" aria-hidden="true">
+    <defs>
+      <pattern id="g" width="80" height="80" patternUnits="userSpaceOnUse">
+        <path d="M 80 0 H 0 V 80" fill="none" stroke="var(--line)" stroke-opacity="0.6" stroke-width="1" />
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)" />
+  </svg>
+
+  <div class="beam"></div>
+
+  <div class="wordmark" aria-label="Umamimi"><span>U</span><span>m</span><span>a</span><span>m</span><span>i</span><span>m</span><span>i</span></div>
+
+  <svg class="route" aria-hidden="true">
+    <circle cx="4" cy="5" r="4" fill="var(--accent)" />
+    <line x1="4" y1="5" x2="466" y2="5" stroke="var(--accent)" stroke-opacity="0.7" stroke-width="2" />
+  </svg>
+
+  <p class="tagline"><span>2018年からMMD動画を作っています。</span><span>舞台照明もやっています。</span></p>
+  <p class="url">umamimi.saphir-vis.com</p>
+
+  <div class="window">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="100,50 90.45,79.39 65.45,97.55 34.55,97.55 9.55,79.39 0,50 9.55,20.61 34.55,2.45 65.45,2.45 90.45,20.61"
+        fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+    </svg>
+    <img src="../../public/character/umamimi.webp" alt="" />
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <polyline points="100,50 90.45,79.39 65.45,97.55 34.55,97.55 9.55,79.39 0,50"
+        fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+    </svg>
+  </div>
+</body>
+</html>

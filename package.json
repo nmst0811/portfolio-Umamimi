@@ -1,0 +1,22 @@
+{
+  "name": "umamimi-portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000 --no-autoupdate",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@fontsource/dotgothic16": "^5.3.1",
+    "@fontsource/zen-kaku-gothic-new": "^5.3.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "nuxt": "^4.6.1",
+    "tailwindcss": "^4.3.3",
+    "vue": "^3.5.43",
+    "vue-router": "^5.4.0"
+  }
+}

@@ -1,0 +1,215 @@
+@import 'tailwindcss';
+
+/*
+ * デザイントークン。色はキャラクター画像(design/character/)から取った。
+ *  - 背景・面: 髪の青緑 #234c5c と制服の紺を、舞台の暗転まで落とした色
+ *  - アクセント: ミクのティール 1色だけ。リンク・現在地・主ボタンに限る
+ *  - hot: 髪の赤メッシュ。状態を示す小さな印(新着など)専用。まだ未使用
+ * キャラの水色・薄紫(LEDの髪飾り)は絵そのものに任せ、UI では使わない。
+ */
+@theme {
+  --color-bg: #070c11; /* 暗転 */
+  --color-surface: #0e1822; /* 幕 */
+  --color-line: #1d3340; /* 罫線 */
+  --color-fg: #e9f2f6;
+  --color-muted: #94aab6;
+  --color-accent: #39c5bb;
+  --color-hot: #d84858;
+
+  /* 髪飾りのドット表現に合わせ、見出しと数字だけドットフォントにする */
+  --font-display: 'DotGothic16', 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  --font-sans: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    line-height: 1.85; /* 日本語本文向け */
+    -webkit-font-smoothing: antialiased;
+    /* 日本語を単語(文節)の途中で折り返さない。未対応のブラウザでは通常の折り返し */
+    word-break: auto-phrase;
+  }
+
+  /* 日本語フォントは unicode-range で分割して配信している。
+     分割されたファイルをまたぐと palt(プロポーショナル詰め)が揃わず字間が乱れるため、使わない */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-accent) 40%, transparent);
+  }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+/* 十角形メガネから取った「面取りした角」。サムネイルやボタンに共通で使う */
+@utility chamfer {
+  --c: 14px;
+  clip-path: polygon(
+    var(--c) 0,
+    calc(100% - var(--c)) 0,
+    100% var(--c),
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    var(--c) 100%,
+    0 calc(100% - var(--c)),
+    0 var(--c)
+  );
+}
+
+/* 舞台照明の光の筋。ぼかさず、半透明の面だけで表す */
+@utility beam {
+  position: absolute;
+  pointer-events: none;
+  background-color: color-mix(in oklab, var(--color-accent) 8%, transparent);
+}
+
+/*
+ * 最初に開いたときだけ、結線が引かれ、図形が現れる。
+ *  - <html> に付く .intro の間だけ動く(head のスクリプトが付け、少し後か、最初のページ移動で外す)
+ *  - 動かすのは、小さな SVG の線の長さ(stroke-dashoffset)と不透明度だけ。1回きりで、大きな面は動かさない
+ *  - 「視差効果を減らす」設定のときは、動かさずに完成した形を出す
+ *  - 線は pathLength="1" を付けた要素に使う(長さを 1 として扱える)
+ */
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes route-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .intro .route-draw {
+    stroke-dasharray: 1;
+    animation: route-draw var(--draw-duration, 1.2s) ease-out var(--draw-delay, 0.3s) backwards;
+  }
+
+  .intro .route-appear {
+    animation: route-appear 0.5s ease-out var(--appear-delay, 1s) backwards;
+  }
+}
+
+/*
+ * microCMS のリッチエディタで書いた本文(.rich を付けた要素に使う)。
+ * Tailwind は見出しや箇条書きの見た目を消しているので、本文で使うものだけ戻す。
+ */
+@layer components {
+  .rich > * + * {
+    margin-top: 1.25em;
+  }
+
+  .rich h2 {
+    margin-top: 2.5em;
+    border-top: 1px solid var(--color-line);
+    padding-top: 1em;
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  .rich h3 {
+    margin-top: 2em;
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+
+  .rich ul {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+
+  .rich ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+
+  .rich li + li {
+    margin-top: 0.4em;
+  }
+
+  .rich a {
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-line);
+    text-underline-offset: 4px;
+  }
+
+  .rich a:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
+  .rich blockquote {
+    border-left: 2px solid var(--color-accent);
+    padding-left: 1em;
+    color: var(--color-muted);
+  }
+
+  .rich img,
+  .rich video,
+  .rich iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .rich pre {
+    overflow-x: auto;
+    background-color: var(--color-surface);
+    padding: 1em;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .rich table {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  .rich th,
+  .rich td {
+    border: 1px solid var(--color-line);
+    padding: 0.5em 0.75em;
+    text-align: left;
+  }
+
+  .rich hr {
+    border-color: var(--color-line);
+  }
+}
+
+/* 現在のページ。色だけに頼らず下線でも示す */
+@utility nav-current {
+  color: var(--color-fg);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.55em;
+}
