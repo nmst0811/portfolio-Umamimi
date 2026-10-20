@@ -7,7 +7,7 @@ import { cached, cmsConfig, cmsList, sampleOrFail } from '../utils/microcms'
 export default defineEventHandler(async (event): Promise<Work[]> => {
   if (!cmsConfig(event).configured) return sampleOrFail(sampleWorks)
   const raw = await cached('works', () =>
-    cmsList<CmsWork>(event, 'works', { orders: '-date', fields: 'id,title,kind,category,date,videoUrl,thumbnail,summary' }),
+    cmsList<CmsWork>(event, 'works', { orders: '-date', fields: 'id,title,kind,category,date,videoUrl,thumbnail,images,summary' }),
   )
   return raw.map(mapWork)
 })

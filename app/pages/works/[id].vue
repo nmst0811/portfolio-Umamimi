@@ -28,12 +28,11 @@ usePageMeta({
       <span v-if="work.platform">{{ work.platform }}</span>
     </p>
 
-    <!-- 埋め込みプレーヤー(動画のうち YouTube とニコニコ動画だけ)。それ以外は、サムネイルがあれば出す -->
-    <div v-if="work.embedUrl || work.thumbnail" class="relative mt-6">
+    <!-- 埋め込みプレーヤー(動画のうち YouTube とニコニコ動画だけ) -->
+    <div v-if="work.embedUrl" class="relative mt-6">
       <CropMarks />
-      <div :class="work.kind === '動画' ? 'aspect-video bg-surface' : ''">
+      <div class="aspect-video bg-surface">
         <iframe
-          v-if="work.embedUrl"
           :src="work.embedUrl"
           :title="`${work.title}(${work.platform}の動画)`"
           class="size-full"
@@ -42,16 +41,6 @@ usePageMeta({
           allowfullscreen
           referrerpolicy="strict-origin-when-cross-origin"
         />
-        <!-- 動画のサムネイルは 16:9 の枠に収める。プロダクトの画像(スクリーンショットなど)は、切らずに出す -->
-        <img
-          v-else-if="work.kind === '動画'"
-          :src="work.thumbnail"
-          alt=""
-          width="960"
-          height="540"
-          class="size-full object-cover"
-        />
-        <img v-else :src="work.thumbnail" alt="" class="mx-auto h-auto max-h-[32rem] w-full bg-surface object-contain" />
       </div>
     </div>
     <p v-if="work.url" class="mt-3">
@@ -64,6 +53,9 @@ usePageMeta({
         {{ work.platform }}で見る<span class="sr-only">(新しいタブで開く)</span>
       </a>
     </p>
+
+    <!-- 画像(サムネイルと画像(複数)の全部) -->
+    <ImageGallery :images="work.images" :name="work.title" :eager="!work.embedUrl" />
 
     <p v-if="work.summary" class="mt-6 max-w-2xl text-lg">{{ work.summary }}</p>
 

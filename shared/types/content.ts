@@ -22,8 +22,16 @@ export interface Work {
   date: string // YYYY-MM-DD(作品の公開日)
   platform?: string // 動画のみ。'YouTube' / 'ニコニコ動画' など
   url?: string // 動画のみ。動画のURL
-  thumbnail?: string
+  /** 一覧のカードに出す画像。サムネイル、画像(複数)の順。2枚以上なら、一定時間ごとに切り替える */
+  previews: string[]
   summary?: string // 概要(一覧に出す)
+}
+
+/** 詳細ページに並べる画像(作品・イベント共通) */
+export interface GalleryImage {
+  src: string
+  width: number
+  height: number
 }
 
 export interface WorkDetail extends Work {
@@ -31,6 +39,8 @@ export interface WorkDetail extends Work {
   body: string
   /** 埋め込みプレーヤーのURL。YouTube とニコニコ動画だけ */
   embedUrl?: string
+  /** サムネイル、画像(複数)の全部(同じ画像は1枚にまとめる) */
+  images: GalleryImage[]
   /** 関連リンク(プロダクトの配布先・ソースなど) */
   links: LinkItem[]
 }
@@ -67,6 +77,8 @@ export interface EventItem {
 export interface EventDetail extends EventItem {
   /** 詳細(告知文、終了後はレポート)。HTML */
   body: string
+  /** 画像(複数)。詳細ページにだけ並べる(一覧には出さない) */
+  images: GalleryImage[]
   links: LinkItem[]
 }
 

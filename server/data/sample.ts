@@ -7,6 +7,7 @@ import type {
   Profile,
   Work,
   WorkDetail,
+  GalleryImage,
 } from '../../shared/types/content'
 
 const sampleBody = `
@@ -23,6 +24,36 @@ const sampleBody = `
 // YouTube の最初の動画。仮データの埋め込みとサムネイルの確認に使う
 const sampleVideo = 'https://www.youtube.com/watch?v=jNQXAC9IVRw'
 
+// 複数枚の表示(カードの切り替え、詳細ページの一覧)の確認用。外部に頼らないよう、SVG をその場で作る
+function sampleImage(label: string, hue: number, width: number, height: number): GalleryImage {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+    `<rect width="100%" height="100%" fill="hsl(${hue} 40% 22%)"/>` +
+    `<text x="50%" y="50%" fill="#e9f2f6" font-size="${height / 8}" font-family="sans-serif" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`
+  return { src: `data:image/svg+xml,${encodeURIComponent(svg)}`, width, height }
+}
+
+const sampleGallery: Record<string, { label: string; hue: number }[]> = {
+  w1: [
+    { label: 'サンプル画像 1', hue: 190 },
+    { label: 'サンプル画像 2', hue: 330 },
+  ],
+  w7: [
+    { label: 'サンプル画像 1', hue: 190 },
+    { label: 'サンプル画像 2', hue: 40 },
+    { label: 'サンプル画像 3', hue: 270 },
+  ],
+  // イベントは詳細ページにだけ出す。e1 は複数枚、e3 は1枚
+  e1: [
+    { label: 'サンプル画像 1', hue: 150 },
+    { label: 'サンプル画像 2', hue: 10 },
+  ],
+  e3: [{ label: 'サンプル画像 1', hue: 220 }],
+}
+
+const galleryOf = (id: string, width: number, height: number) =>
+  (sampleGallery[id] ?? []).map(({ label, hue }) => sampleImage(label, hue, width, height))
+
 export const sampleWorks: Work[] = [
   {
     id: 'w1',
@@ -32,7 +63,7 @@ export const sampleWorks: Work[] = [
     date: '2026-09-20',
     platform: 'YouTube',
     url: sampleVideo,
-    thumbnail: 'https://i.ytimg.com/vi/jNQXAC9IVRw/hqdefault.jpg',
+    previews: galleryOf('w1', 960, 540).map((image) => image.src),
     summary: 'これは仮の概要です。一覧のカードに、動画のあらすじや見どころを2〜3行で載せます。',
   },
   {
@@ -41,19 +72,21 @@ export const sampleWorks: Work[] = [
     kind: 'プロダクト',
     category: '個人制作',
     date: '2026-09-05',
+    previews: galleryOf('w7', 960, 540).map((image) => image.src),
     summary: '仮の概要です。ソフトウェアなどのプロダクトは、動画URLの代わりに関連リンク(配布先やソース)を持ちます。',
   },
-  { id: 'w2', title: 'サンプル動画のタイトル(依頼制作)', kind: '動画', category: '外部・依頼制作', date: '2026-08-02', platform: 'YouTube', url: 'https://www.youtube.com/', summary: '仮の概要です。' },
-  { id: 'w3', title: 'サンプル動画のタイトル', kind: '動画', category: '個人制作', date: '2026-06-14', platform: 'ニコニコ動画', url: 'https://www.nicovideo.jp/watch/sm9' },
-  { id: 'w4', title: 'サンプル動画のタイトル', kind: '動画', category: 'その他', date: '2026-03-28', platform: 'YouTube', url: 'https://www.youtube.com/' },
-  { id: 'w5', title: 'サンプル動画のタイトル(依頼制作)', kind: '動画', category: '外部・依頼制作', date: '2025-12-07', platform: 'YouTube', url: 'https://www.youtube.com/' },
-  { id: 'w6', title: 'サンプル動画のタイトル', kind: '動画', category: '個人制作', date: '2025-10-11', platform: 'YouTube', url: 'https://www.youtube.com/' },
+  { id: 'w2', previews: [], title: 'サンプル動画のタイトル(依頼制作)', kind: '動画', category: '外部・依頼制作', date: '2026-08-02', platform: 'YouTube', url: 'https://www.youtube.com/', summary: '仮の概要です。' },
+  { id: 'w3', previews: [], title: 'サンプル動画のタイトル', kind: '動画', category: '個人制作', date: '2026-06-14', platform: 'ニコニコ動画', url: 'https://www.nicovideo.jp/watch/sm9' },
+  { id: 'w4', previews: [], title: 'サンプル動画のタイトル', kind: '動画', category: 'その他', date: '2026-03-28', platform: 'YouTube', url: 'https://www.youtube.com/' },
+  { id: 'w5', previews: [], title: 'サンプル動画のタイトル(依頼制作)', kind: '動画', category: '外部・依頼制作', date: '2025-12-07', platform: 'YouTube', url: 'https://www.youtube.com/' },
+  { id: 'w6', previews: [], title: 'サンプル動画のタイトル', kind: '動画', category: '個人制作', date: '2025-10-11', platform: 'YouTube', url: 'https://www.youtube.com/' },
 ]
 
 export const sampleWorkDetails: WorkDetail[] = sampleWorks.map((work) => ({
   ...work,
   body: sampleBody,
   embedUrl: work.id === 'w1' ? 'https://www.youtube-nocookie.com/embed/jNQXAC9IVRw' : undefined,
+  images: galleryOf(work.id, 1600, 900),
   links:
     work.kind === 'プロダクト'
       ? [
@@ -82,6 +115,7 @@ export const sampleEvents: EventItem[] = [
 export const sampleEventDetails: EventDetail[] = sampleEvents.map((item) => ({
   ...item,
   body: sampleBody,
+  images: galleryOf(item.id, 1600, 900),
   links: [
     { label: '公式サイト', href: 'https://example.com/' },
     { label: '告知の投稿', href: 'https://example.com/post' },

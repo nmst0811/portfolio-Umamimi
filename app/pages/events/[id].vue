@@ -31,6 +31,9 @@ usePageMeta({
       <span>{{ event.place }}</span>
     </p>
 
+    <!-- 画像(複数)。一覧には出さず、詳細ページにだけ並べる -->
+    <ImageGallery :images="event.images" :name="event.name" eager />
+
     <p v-if="event.summary" class="mt-6 max-w-2xl text-lg">{{ event.summary }}</p>
     <!-- 本文は、自分で管理している microCMS の内容 -->
     <div v-if="event.body" class="rich mt-8 max-w-2xl" v-html="event.body" />

@@ -3,28 +3,29 @@ import type { Work } from '#shared/types/content'
 
 // カード全体がクリックできる(タイトルのリンクを、カードの大きさまで広げている)。
 // フォーカス枠はタイトルだけに付くので、面取り(clip-path)で切れない。
+// 画像が複数あるときは、一定時間ごとに切り替える。カーソルやフォーカスがあるあいだは止める。
 defineProps<{
   work: Work
   featured?: boolean
 }>()
+
+const hovered = ref(false)
+const focused = ref(false)
 </script>
 
 <template>
-  <article class="group relative">
+  <article
+    class="group relative"
+    @pointerenter="hovered = true"
+    @pointerleave="hovered = false"
+    @focusin="focused = true"
+    @focusout="focused = false"
+  >
     <div class="relative">
       <CropMarks />
       <div class="chamfer aspect-video bg-surface" :class="featured ? '[--c:22px]' : '[--c:14px]'">
-        <img
-          v-if="work.thumbnail"
-          :src="work.thumbnail"
-          alt=""
-          width="960"
-          height="540"
-          loading="lazy"
-          decoding="async"
-          class="size-full object-cover"
-        />
-        <!-- サムネイルがないときの面 -->
+        <ImageRotator v-if="work.previews.length" :images="work.previews" :paused="hovered || focused" />
+        <!-- 画像がないときの面 -->
         <div v-else class="flex size-full items-center justify-center">
           <Decagon outline class="size-12 text-line" />
         </div>

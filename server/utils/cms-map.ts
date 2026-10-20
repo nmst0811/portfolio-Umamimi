@@ -3,6 +3,7 @@
 import type {
   EventDetail,
   EventItem,
+  GalleryImage,
   LinkItem,
   Post,
   PostDetail,
@@ -38,6 +39,8 @@ export interface CmsWork {
   date: string
   videoUrl?: string
   thumbnail?: CmsImage
+  /** 複数画像。未設定のときは、キーがないか null */
+  images?: CmsImage[] | null
   summary?: string
   body?: string
   links?: CmsLink[]
@@ -61,6 +64,8 @@ export interface CmsEvent {
   place: string
   summary?: string
   body?: string
+  /** 複数画像。未設定のときは、キーがないか null */
+  images?: CmsImage[] | null
   links?: CmsLink[]
 }
 
@@ -146,12 +151,32 @@ export function sourceOf(url: string) {
   return known[host] ?? host
 }
 
-/** サムネイルが未設定のときは、YouTube の動画なら YouTube のサムネイルを使う(ニコニコ動画は、管理画面で設定する) */
-function thumbnailOf(raw: CmsWork, videoUrl: string | undefined) {
-  if (raw.thumbnail?.url) return `${raw.thumbnail.url}?w=960&fm=webp`
+/** 画像の空きを除き、同じ画像(URL が同じ)は1枚にまとめる */
+function uniqueImages(images: (CmsImage | null | undefined)[]): CmsImage[] {
+  const all = images.filter((image): image is CmsImage => Boolean(image?.url))
+  return all.filter((image, i) => all.findIndex((other) => other.url === image.url) === i)
+}
+
+/** 作品の画像を、サムネイル、画像(複数)の順に並べる */
+const imagesOf = (raw: CmsWork) => uniqueImages([raw.thumbnail, ...(raw.images ?? [])])
+
+/** 画像の配信用の URL(幅の指定と webp への変換)。元の画像より大きくはしない */
+function resized(image: CmsImage, maxWidth: number): GalleryImage {
+  const scale = Math.min(1, maxWidth / image.width)
+  const width = Math.round(image.width * scale)
+  return { src: `${image.url}?w=${width}&fm=webp`, width, height: Math.round(image.height * scale) }
+}
+
+/**
+ * 一覧のカードに出す画像。サムネイルも画像(複数)も未設定のときは、YouTube の動画なら YouTube のサムネイルを使う
+ * (ニコニコ動画は、管理画面で設定する)
+ */
+function previewsOf(raw: CmsWork, videoUrl: string | undefined) {
+  const images = imagesOf(raw)
+  if (images.length) return images.map((image) => resized(image, 960).src)
   const id = videoUrl ? youtubeId(videoUrl) : undefined
   // hqdefault は上下に黒い帯が入った 4:3 の画像。16:9 の枠に object-cover で収めると、帯が切り落とされる
-  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : undefined
+  return id ? [`https://i.ytimg.com/vi/${id}/hqdefault.jpg`] : []
 }
 
 export function mapWork(raw: CmsWork): Work {
@@ -169,7 +194,7 @@ export function mapWork(raw: CmsWork): Work {
     date: toJstDate(required(raw.date, `${where} の「公開日」`)),
     platform: url ? platformOf(url) : undefined,
     url,
-    thumbnail: thumbnailOf(raw, url),
+    previews: previewsOf(raw, url),
     summary: raw.summary?.trim() || undefined,
   }
 }
@@ -180,6 +205,7 @@ export function mapWorkDetail(raw: CmsWork): WorkDetail {
     ...work,
     body: raw.body ?? '',
     embedUrl: work.url ? embedUrlOf(work.url) : undefined,
+    images: imagesOf(raw).map((image) => resized(image, 1600)),
     links: mapLinks(raw.links, `works/${raw.id} の「関連リンク」`),
   }
 }
@@ -224,7 +250,12 @@ export function mapEvent(raw: CmsEvent): EventItem {
 }
 
 export function mapEventDetail(raw: CmsEvent): EventDetail {
-  return { ...mapEvent(raw), body: raw.body ?? '', links: mapLinks(raw.links, `events/${raw.id} の「関連リンク」`) }
+  return {
+    ...mapEvent(raw),
+    body: raw.body ?? '',
+    images: uniqueImages(raw.images ?? []).map((image) => resized(image, 1600)),
+    links: mapLinks(raw.links, `events/${raw.id} の「関連リンク」`),
+  }
 }
 
 export function mapProfile(raw: CmsProfile): Profile {

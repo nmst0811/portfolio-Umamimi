@@ -100,9 +100,9 @@ API は 4 つで、Hobby プランの上限(5 つ)に収まります。項目 ID
 
 | API(形式) | 主な項目 |
 |---|---|
-| `works`(リスト) | タイトル `title`、種類 `kind`(動画 / プロダクト)、カテゴリ `category`、公開日 `date`、動画 URL `videoUrl`(動画のとき必須)、サムネイル `thumbnail`、概要 `summary`、詳細 `body`、関連リンク `links` |
+| `works`(リスト) | タイトル `title`、種類 `kind`(動画 / プロダクト)、カテゴリ `category`、公開日 `date`、動画 URL `videoUrl`(動画のとき必須)、サムネイル `thumbnail`、画像(複数)`images`、概要 `summary`、詳細 `body`、関連リンク `links` |
 | `posts`(リスト) | タイトル `title`、カテゴリ `category`(複数選択)、種別 `kind`(自サイト記事 / 外部記事リンク)、公開日 `date`、本文 `body`、外部記事の URL `externalUrl` |
-| `events`(リスト) | 名称 `name`、開催日 `date`、開催日の表記 `dateText`、場所 `place`、概要 `summary`、詳細 `body`、関連リンク `links` |
+| `events`(リスト) | 名称 `name`、開催日 `date`、開催日の表記 `dateText`、場所 `place`、概要 `summary`、詳細 `body`、画像(複数)`images`、関連リンク `links` |
 | `profile`(オブジェクト) | 自己紹介 `intro`、参加歴 `history`、リンク `links`、連絡先メール `email` |
 
 `links`(関連リンク)と `history`(参加歴)は、microCMS の繰り返しフィールドで、カスタムフィールド `linkItem`(表示名 `label` と URL `url`)と `historyItem`(名称 `name`、期間 `period`、役割 `role`、補足 `note`)を使います。
