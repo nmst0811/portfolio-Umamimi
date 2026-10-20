@@ -9,7 +9,7 @@ usePageMeta({ title: 'プライバシーポリシー', description: 'Umamimi の
     <PageHeader title="プライバシーポリシー" terminal="decagon" />
 
     <!-- 見出し・段落・箇条書きの見た目は、本文用の .rich をそのまま使う -->
-    <div class="rich mt-8 max-w-2xl">
+    <div class="rich mt-8">
       <p>
         Umamimi(以下「当サイト」)は、訪問してくださる方の情報を、次のとおり取り扱います。
       </p>

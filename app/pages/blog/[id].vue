@@ -24,6 +24,6 @@ usePageMeta({ title: post.value.title, description: `Umamimi のブログ(${post
     </p>
 
     <!-- 本文は、自分で管理している microCMS の内容 -->
-    <div v-if="post.body" class="rich mt-8 max-w-2xl" v-html="post.body" />
+    <div v-if="post.body" class="rich mt-8" v-html="post.body" />
   </article>
 </template>

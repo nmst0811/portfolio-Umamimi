@@ -57,10 +57,10 @@ usePageMeta({
     <!-- 画像(サムネイルと画像(複数)の全部) -->
     <ImageGallery :images="work.images" :name="work.title" :eager="!work.embedUrl" />
 
-    <p v-if="work.summary" class="mt-6 max-w-2xl text-lg">{{ work.summary }}</p>
+    <p v-if="work.summary" class="mt-6 text-lg">{{ work.summary }}</p>
 
     <!-- プロダクトの配布先やソースなど。本文が長くなっても見つけられるよう、本文より先に出す -->
-    <section v-if="work.links.length" aria-labelledby="links" class="mt-8 max-w-2xl border-t border-line pt-6">
+    <section v-if="work.links.length" aria-labelledby="links" class="mt-8 border-t border-line pt-6">
       <h2 id="links" class="font-bold">関連リンク</h2>
       <ul class="mt-2">
         <li v-for="link in work.links" :key="link.href">
@@ -77,6 +77,6 @@ usePageMeta({
     </section>
 
     <!-- 本文は、自分で管理している microCMS の内容 -->
-    <div v-if="work.body" class="rich mt-8 max-w-2xl" v-html="work.body" />
+    <div v-if="work.body" class="rich mt-8" v-html="work.body" />
   </article>
 </template>
